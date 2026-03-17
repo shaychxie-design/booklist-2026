@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Literary Bookshelf 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #f7f8f9;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --border-mid: rgba(0,0,0,0.14);
+    --text-primary: #0f1117;
+    --text-secondary: #5a6072;
+    --text-tertiary: #9ba3b4;
+    --accent: #0f1117;
+    --accent-light: #f0f1f3;
+    --success: #16a34a;
+    --error: #dc2626;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --sans: 'DM Sans', sans-serif;
+    --serif: 'DM Serif Display', serif;
+  }
+
+  body { font-family: var(--sans); background: var(--bg); color: var(--text-primary); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* Header */
+  .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .header-left h1 { font-family: var(--serif); font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 400; letter-spacing: -0.5px; color: var(--text-primary); line-height: 1; }
+  .header-left p { font-size: 13px; color: var(--text-tertiary); margin-top: 6px; font-weight: 300; letter-spacing: 0.3px; }
+  .header-right { text-align: right; }
+  .stat-count { font-family: var(--serif); font-size: 2.4rem; color: var(--text-primary); line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; letter-spacing: 0.3px; }
+  .stat-avg { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* Toolbar */
+  .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+  .toolbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+  /* Recommended toggle switch */
+  .rec-toggle-wrap { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .rec-toggle-wrap span { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+  .toggle-track { width: 32px; height: 18px; border-radius: 100px; background: var(--border-mid); border: 1px solid var(--border-mid); transition: background 0.2s, border-color 0.2s; position: relative; flex-shrink: 0; }
+  .toggle-track.on { background: var(--text-primary); border-color: var(--text-primary); }
+  .toggle-thumb { width: 12px; height: 12px; border-radius: 50%; background: #fff; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; }
+  .toggle-track.on .toggle-thumb { transform: translateX(14px); }
+
+  .sort-select { padding: 8px 12px; background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); font-family: var(--sans); font-size: 12px; cursor: pointer; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ba3b4' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+  .sort-select:hover { border-color: var(--border-mid); }
+
+  .view-toggle { display: flex; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+  .view-btn { padding: 8px 13px; background: var(--surface); border: none; font-family: var(--sans); font-size: 12px; color: var(--text-tertiary); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
+  .view-btn + .view-btn { border-left: 1px solid var(--border); }
+  .view-btn.active { background: var(--text-primary); color: #fff; }
+  .view-btn svg { width: 13px; height: 13px; }
+
+  /* Genre bar */
+  .genre-bar { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
+  .genre-chip { padding: 5px 12px; border: 1px solid var(--border); border-radius: 100px; font-size: 12px; color: var(--text-secondary); background: var(--surface); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .genre-chip:hover { border-color: var(--border-mid); color: var(--text-primary); }
+  .genre-chip.active { background: var(--text-primary); color: #fff; border-color: var(--text-primary); }
+
+  /* Grid */
+  .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+  .book-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: all 0.2s; cursor: default; }
+  .book-card:hover { border-color: var(--border-mid); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
+  .book-cover { width: 100%; aspect-ratio: 2/3; overflow: hidden; background: var(--accent-light); position: relative; }
+  .book-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .book-cover-fallback { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(160deg, #e8eaed 0%, #d1d5db 100%); }
+  .book-cover-fallback .fb-num { font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; font-weight: 400; }
+  .book-cover-fallback .fb-title { font-family: var(--serif); font-size: 1rem; color: var(--text-secondary); text-align: center; line-height: 1.3; }
+  .book-info { padding: 14px; }
+  .book-num { font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px; font-weight: 400; }
+  .book-title-text { font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.3; margin-bottom: 3px; }
+  .book-author-text { font-size: 12px; color: var(--text-tertiary); margin-bottom: 8px; }
+  .book-rating { font-size: 12px; margin-bottom: 6px; }
+  .book-genre-tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 100px; background: var(--accent-light); color: var(--text-secondary); margin-bottom: 6px; }
+  .book-notes-text { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+  .rec-badge { display: inline-block; font-size: 10px; padding: 3px 8px; border-radius: 100px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; margin-top: 6px; }
+
+  /* List view */
+  .books-list { display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--border); }
+  .book-row { display: grid; grid-template-columns: 44px 60px 1fr auto; gap: 16px; align-items: center; padding: 14px 20px; background: var(--surface); transition: background 0.12s; cursor: default; }
+  .book-row:hover { background: var(--accent-light); }
+  .book-row .row-num { font-size: 12px; color: var(--text-tertiary); font-weight: 400; }
+  .book-row-cover { width: 44px; height: 60px; border-radius: var(--radius-sm); overflow: hidden; background: var(--accent-light); flex-shrink: 0; }
+  .book-row-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .book-row-cover-fb { width: 100%; height: 100%; background: linear-gradient(160deg, #e8eaed 0%, #d1d5db 100%); display: flex; align-items: center; justify-content: center; }
+  .book-row-cover-fb span { font-size: 8px; color: var(--text-tertiary); text-align: center; padding: 2px; line-height: 1.2; }
+  .book-row-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .book-row-rating { font-size: 12px; }
+
+  /* Library view */
+  .library-wrap { display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
+  .library-card-big { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 48px; max-width: 680px; width: 100%; text-align: center; }
+  .lib-cover { width: 180px; height: 270px; margin: 0 auto 28px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); }
+  .lib-cover img { width: 100%; height: 100%; object-fit: cover; }
+  .lib-cover-fb { width: 100%; height: 100%; background: linear-gradient(160deg, #e8eaed 0%, #d1d5db 100%); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .lib-cover-fb span { font-family: var(--serif); font-size: 1.1rem; color: var(--text-secondary); text-align: center; line-height: 1.3; }
+  .lib-num { font-size: 12px; color: var(--text-tertiary); margin-bottom: 10px; }
+  .lib-title { font-family: var(--serif); font-size: 2rem; color: var(--text-primary); margin-bottom: 8px; line-height: 1.2; }
+  .lib-author { font-size: 14px; color: var(--text-tertiary); margin-bottom: 16px; font-weight: 300; }
+  .lib-rating { font-size: 18px; margin-bottom: 14px; }
+  .lib-notes { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px; font-style: italic; max-width: 480px; margin-left: auto; margin-right: auto; }
+  .lib-genre { font-size: 12px; color: var(--text-tertiary); margin-bottom: 12px; }
+  .lib-nav { display: flex; align-items: center; gap: 16px; margin-top: 24px; justify-content: center; }
+  .lib-nav-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-mid); background: var(--surface); color: var(--text-primary); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .lib-nav-btn:hover { background: var(--accent-light); }
+  .lib-progress { font-size: 12px; color: var(--text-tertiary); }
+
+  /* Quick entry bar */
+  .quick-entry { display: flex; gap: 0; margin-bottom: 28px; border: 1px solid var(--border-mid); border-radius: var(--radius-md); overflow: hidden; background: var(--surface); transition: border-color 0.15s; }
+  .quick-entry:focus-within { border-color: var(--text-primary); }
+  .quick-entry input { flex: 1; padding: 11px 14px; border: none; font-family: var(--sans); font-size: 13px; color: var(--text-primary); background: transparent; outline: none; }
+  .quick-entry input::placeholder { color: var(--text-tertiary); }
+  .quick-entry button { padding: 0 16px; background: var(--text-primary); color: #fff; border: none; font-family: var(--sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+  .quick-entry button:hover { opacity: 0.8; }
+  .quick-hint { font-size: 11px; color: var(--text-tertiary); margin-top: -20px; margin-bottom: 24px; }
+
+  /* Add/Edit modal */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 200; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius-xl); padding: 24px; max-width: 480px; width: 90%; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-family: var(--serif); font-size: 1.3rem; margin-bottom: 4px; }
+  .modal-hint { font-size: 11px; color: var(--text-tertiary); margin-bottom: 16px; }
+  .form-row { margin-bottom: 10px; }
+  .form-row label { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; letter-spacing: 0.2px; }
+  .form-row input, .form-row textarea, .form-row select { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: var(--radius-md); font-family: var(--sans); font-size: 13px; color: var(--text-primary); background: var(--bg); outline: none; transition: border 0.15s; }
+  .form-row input:focus, .form-row textarea:focus, .form-row select:focus { border-color: var(--text-primary); background: var(--surface); }
+  .form-row textarea { min-height: 60px; resize: vertical; }
+  .cover-preview { width: 80px; height: 120px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); margin-top: 8px; display: none; }
+  .cover-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .search-results { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .cover-option { width: 48px; height: 72px; border-radius: var(--radius-sm); overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: border 0.15s; }
+  .cover-option.selected { border-color: var(--text-primary); }
+  .cover-option img { width: 100%; height: 100%; object-fit: cover; }
+  .searching-msg { font-size: 12px; color: var(--text-tertiary); padding: 8px 0; }
+  .btn-paste-toggle { background: none; border: none; font-family: var(--sans); font-size: 11px; color: var(--text-tertiary); cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px; }
+  .btn-paste-toggle:hover { color: var(--text-secondary); }
+  .form-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .btn-save { flex: 1; padding: 9px; background: var(--text-primary); color: #fff; border: none; border-radius: var(--radius-md); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .btn-save:hover { opacity: 0.8; }
+  .btn-cancel-form { flex: 0 0 auto; padding: 9px 16px; background: none; border: 1px solid var(--border-mid); border-radius: var(--radius-md); font-family: var(--sans); font-size: 13px; cursor: pointer; color: var(--text-secondary); }
+  .btn-cancel-form:hover { background: var(--accent-light); }
+  .btn-delete { padding: 9px 14px; background: none; border: 1px solid #fca5a5; border-radius: var(--radius-md); font-family: var(--sans); font-size: 12px; cursor: pointer; color: var(--error); }
+  .btn-delete:hover { background: #fef2f2; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text-primary); color: #fff; padding: 10px 20px; border-radius: var(--radius-md); font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .empty-state { text-align: center; padding: 80px 20px; }
+  .empty-state h3 { font-family: var(--serif); font-size: 1.6rem; color: var(--text-secondary); margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; color: var(--text-tertiary); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .author-rec-row { display: flex; align-items: flex-end; gap: 12px; }
+  .rec-field { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; padding-bottom: 2px; }
+  .rec-field label { font-size: 11px; color: var(--text-secondary); font-weight: 500; letter-spacing: 0.2px; white-space: nowrap; }
+  .book-row-actions { display: flex; gap: 8px; }
+  .btn-edit-sm { padding: 5px 10px; font-size: 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: none; cursor: pointer; color: var(--text-tertiary); font-family: var(--sans); }
+  .btn-edit-sm:hover { border-color: var(--border-mid); color: var(--text-primary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1>Literary Bookshelf</h1>
+      <p id="year-label">2026 reading log</p>
+    </div>
+    <div class="header-right">
+      <div class="stat-count" id="stat-count">0</div>
+      <div class="stat-label">books read this year</div>
+      <div class="stat-avg" id="stat-avg"></div>
+    </div>
+  </header>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <label class="rec-toggle-wrap" onclick="toggleRecFilter()">
+      <div class="toggle-track" id="recTrack"><div class="toggle-thumb"></div></div>
+      <span>Recommended</span>
+    </label>
+    <div class="toolbar-right">
+      <select class="sort-select" id="sortSelect" onchange="render()">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="rating">Highest rated</option>
+        <option value="title">Title A–Z</option>
+      </select>
+      <div class="view-toggle">
+        <button class="view-btn active" data-view="grid" onclick="setView('grid', this)">
+          <svg viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg>
+          Grid
+        </button>
+        <button class="view-btn" data-view="list" onclick="setView('list', this)">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="4" y1="3" x2="14" y2="3"/><line x1="4" y1="7" x2="14" y2="7"/><line x1="4" y1="11" x2="14" y2="11"/><circle cx="1.5" cy="3" r="1" fill="currentColor" stroke="none"/><circle cx="1.5" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="1.5" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+          List
+        </button>
+        <button class="view-btn" data-view="library" onclick="setView('library', this)">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="12" height="12" rx="2"/><line x1="5" y1="1" x2="5" y2="13"/></svg>
+          Focus
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick entry bar -->
+  <div class="quick-entry">
+    <input type="text" id="quickInput" placeholder="Quick add: Atomic Habits by James Clear — press Enter" onkeydown="handleQuickEntry(event)">
+    <button onclick="handleQuickEntryClick()">Add</button>
+  </div>
+
+  <!-- Genre bar -->
+  <div class="genre-bar" id="genreBar"></div>
+
+  <!-- Books container -->
+  <div id="booksContainer"></div>
+</div>
+
+<!-- Add/Edit modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="form-row">
+      <label>Title *</label>
+      <input type="text" id="f-title" placeholder="Atomic Habits" oninput="debounceSearch()">
+    </div>
+    <div class="form-row">
+      <div class="author-rec-row">
+        <div style="flex:1">
+          <label>Author *</label>
+          <input type="text" id="f-author" placeholder="James Clear" oninput="debounceSearch()">
+        </div>
+        <div class="rec-field">
+          <label>Recommend</label>
+          <div class="rec-toggle-wrap" onclick="toggleModalRec()">
+            <div class="toggle-track" id="modalRecTrack"><div class="toggle-thumb"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-row" id="coverSearchRow">
+      <label>Cover <span style="color:var(--text-tertiary);font-weight:400">(auto-searched)</span></label>
+      <div class="searching-msg" id="searchingMsg" style="display:none">Searching for covers...</div>
+      <div class="search-results" id="searchResults"></div>
+      <div style="margin-top:8px">
+        <button type="button" class="btn-paste-toggle" onclick="togglePasteURL()">Paste a URL instead</button>
+        <div id="pasteURLWrap" style="display:none;margin-top:6px">
+          <input type="url" id="f-cover-url" placeholder="https://..." oninput="applyManualCover(this.value)">
+        </div>
+      </div>
+      <input type="hidden" id="f-cover">
+    </div>
+    <div class="two-col">
+      <div class="form-row">
+        <label>Rating</label>
+        <select id="f-rating">
+          <option value="">No rating</option>
+          <option value="⭐">⭐</option>
+          <option value="⭐⭐">⭐⭐</option>
+          <option value="⭐⭐⭐">⭐⭐⭐</option>
+          <option value="⭐⭐⭐⭐">⭐⭐⭐⭐</option>
+          <option value="⭐⭐⭐⭐⭐">⭐⭐⭐⭐⭐</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Genre</label>
+        <input type="text" id="f-genre" placeholder="Business, Fiction">
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Notes</label>
+      <textarea id="f-notes" placeholder="Your thoughts..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel-form" onclick="closeModal()">Cancel</button>
+      <button class="btn-delete" id="deleteBtn" style="display:none" onclick="deleteBook()">Delete</button>
+      <button class="btn-save" onclick="saveBook()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let books = [];
+let currentView = 'grid';
+let showRecOnly = false;
+let activeGenre = 'all';
+let libIndex = 0;
+let editingId = null;
+let searchTimeout = null;
+
+const STORAGE_KEY = 'literary-bookshelf-2026';
+
+function toTitleCase(str) {
+  const minors = new Set(['a','an','the','and','but','or','nor','for','so','yet','at','by','in','of','on','to','up','as','is']);
+  return str.replace(/\S+/g, (word, i) => {
+    const lower = word.toLowerCase();
+    return (i === 0 || !minors.has(lower)) ? lower.charAt(0).toUpperCase() + lower.slice(1) : lower;
+  });
+}
+
+const SEED_BOOKS = [{"id":1700000001,"number":1,"title":"Financial Freedom","author":"Grant Sabatier","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000001},{"id":1700000002,"number":2,"title":"Genocide Bad","author":"Sim Kern","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000002},{"id":1700000003,"number":3,"title":"The Next Conversation","author":"Jefferson Fisher","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000003},{"id":1700000004,"number":4,"title":"Get Anyone to Do Anything","author":"Dr. David J. Lieberman","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000004},{"id":1700000005,"number":5,"title":"Good Things","author":"Samin Nosrat","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000005},{"id":1700000006,"number":6,"title":"The Coming Wave","author":"Mustafa Suleyman and Michael Bhaskar","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000006},{"id":1700000007,"number":7,"title":"Make Change That Lasts","author":"Dr. Rangan Chatterjee","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000007},{"id":1700000008,"number":8,"title":"So Gay for You","author":"Kate Moennig, Leisha Hailey","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000008},{"id":1700000009,"number":9,"title":"The Opt-Out Family","author":"Erin Loechner","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000009},{"id":1700000010,"number":10,"title":"Delay Deny Defend","author":"Jay M. Feinman","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000010},{"id":1700000011,"number":11,"title":"The Phoenix Economy","author":"Felix Salmon","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000011},{"id":1700000012,"number":12,"title":"How to Love Someone Without Losing Your Mind","author":"Todd Baratz","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000012},{"id":1700000013,"number":13,"title":"The Practice of Groundedness","author":"Brad Stulberg","cover":"","rating":"","genre":"","notes":"","recommend":"No","addedAt":1700000013}];
+
+function init() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      books = JSON.parse(raw);
+    } else {
+      books = SEED_BOOKS.map(b => ({...b}));
+      save();
+    }
+  } catch(e) { console.log('Storage error:', e); }
+  render();
+  fetchMissingCovers();
+}
+
+async function fetchMissingCovers() {
+  const missing = books.filter(b => !b.cover);
+  if (missing.length === 0) return;
+  for (const book of missing) {
+    try {
+      const q = encodeURIComponent(book.title + ' ' + book.author.split(',')[0]);
+      const res = await fetch('https://openlibrary.org/search.json?q=' + q + '&fields=cover_i,cover_edition_key&limit=5');
+      const data = await res.json();
+      let cover = '';
+      for (const doc of (data.docs || [])) {
+        if (doc.cover_i) { cover = 'https://covers.openlibrary.org/b/id/' + doc.cover_i + '-M.jpg'; break; }
+        if (doc.cover_edition_key) { cover = 'https://covers.openlibrary.org/b/olid/' + doc.cover_edition_key + '-M.jpg'; break; }
+      }
+      if (!cover) {
+        const res2 = await fetch('https://www.googleapis.com/books/v1/volumes?q=' + q + '&maxResults=3&printType=books');
+        const data2 = await res2.json();
+        for (const item of (data2.items || [])) {
+          const img = item.volumeInfo?.imageLinks?.thumbnail;
+          if (img) { cover = img.replace('http://','https://').replace('zoom=1','zoom=2').replace('&edge=curl',''); break; }
+        }
+      }
+      if (cover) {
+        book.cover = cover;
+        save();
+        render();
+      }
+    } catch(e) {}
+    await new Promise(r => setTimeout(r, 200));
+  }
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+  } catch(e) { console.error('Save error:', e); }
+}
+
+function getFiltered() {
+  let list = [...books];
+  if (showRecOnly) list = list.filter(b => b.recommend === 'Yes');
+  if (activeGenre !== 'all') list = list.filter(b => (b.genre || '').toLowerCase().includes(activeGenre.toLowerCase()));
+  const sort = document.getElementById('sortSelect').value;
+  if (sort === 'newest') list.reverse();
+  else if (sort === 'oldest') { /* natural order */ }
+  else if (sort === 'rating') list.sort((a,b) => (b.rating || '').length - (a.rating || '').length);
+  else if (sort === 'title') list.sort((a,b) => a.title.localeCompare(b.title));
+  return list;
+}
+
+function render() {
+  const total = books.length;
+  document.getElementById('stat-count').textContent = total;
+  const now = new Date();
+  const monthsElapsed = Math.max(1, now.getMonth() + 1 + (now.getDate() / 30));
+  const avg = (total / monthsElapsed).toFixed(1);
+  document.getElementById('stat-avg').textContent = avg + ' books / month avg';
+
+  renderGenreBar();
+  const filtered = getFiltered();
+  const container = document.getElementById('booksContainer');
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><h3>No books yet</h3><p>Add your first book or adjust your filters.</p></div>';
+    return;
+  }
+
+  if (currentView === 'grid') renderGrid(container, filtered);
+  else if (currentView === 'list') renderList(container, filtered);
+  else renderLibrary(container, filtered);
+}
+
+function renderGenreBar() {
+  const genres = new Set();
+  books.forEach(b => { if (b.genre) b.genre.split(',').forEach(g => genres.add(g.trim())); });
+  const bar = document.getElementById('genreBar');
+  if (genres.size === 0) { bar.innerHTML = ''; return; }
+  let html = '<span class="genre-chip' + (activeGenre === 'all' ? ' active' : '') + '" onclick="setGenre(\'all\')">All genres</span>';
+  genres.forEach(g => {
+    html += '<span class="genre-chip' + (activeGenre === g ? ' active' : '') + '" onclick="setGenre(\'' + g.replace(/'/g, "\\'") + '\')">' + g + '</span>';
+  });
+  bar.innerHTML = html;
+}
+
+function setGenre(g) { activeGenre = g; render(); }
+
+function coverHTML(book, size) {
+  if (book.cover) {
+    return '<img src="' + book.cover + '" loading="lazy" onerror="this.parentNode.innerHTML=fallbackHTML(\'' + encodeURIComponent(book.title) + '\',' + book.number + ')">';
+  }
+  if (size === 'sm') return '<div class="book-row-cover-fb"><span>' + book.title.substring(0,20) + '</span></div>';
+  if (size === 'lib') return '<div class="lib-cover-fb"><span>' + book.title + '</span></div>';
+  return '<div class="book-cover-fallback"><div class="fb-num">#' + book.number + '</div><div class="fb-title">' + book.title + '</div></div>';
+}
+
+function renderGrid(container, filtered) {
+  container.innerHTML = '<div class="books-grid">' + filtered.map(b => `
+    <div class="book-card" onclick="openModal(${b.id})">
+      <div class="book-cover">${coverHTML(b,'')}</div>
+      <div class="book-info">
+        <div class="book-num">#${b.number}</div>
+        <div class="book-title-text">${b.title}</div>
+        <div class="book-author-text">${b.author}</div>
+        ${b.rating ? '<div class="book-rating">' + b.rating + '</div>' : ''}
+        ${b.genre ? '<span class="book-genre-tag">' + b.genre.split(',')[0].trim() + '</span>' : ''}
+        ${b.notes ? '<div class="book-notes-text">' + b.notes.substring(0,90) + (b.notes.length > 90 ? '…' : '') + '</div>' : ''}
+        ${b.recommend === 'Yes' ? '<div class="rec-badge">Recommended</div>' : ''}
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+function renderList(container, filtered) {
+  container.innerHTML = '<div class="books-list">' + filtered.map(b => `
+    <div class="book-row" onclick="openModal(${b.id})">
+      <div class="row-num">#${b.number}</div>
+      <div class="book-row-cover">${coverHTML(b,'sm')}</div>
+      <div>
+        <div class="book-title-text">${b.title}</div>
+        <div class="book-author-text">${b.author}</div>
+        <div class="book-row-meta">
+          ${b.rating ? '<span class="book-row-rating">' + b.rating + '</span>' : ''}
+          ${b.genre ? '<span class="book-genre-tag">' + b.genre.split(',')[0].trim() + '</span>' : ''}
+          ${b.recommend === 'Yes' ? '<span class="rec-badge">Recommended</span>' : ''}
+        </div>
+      </div>
+      <div class="book-row-actions"><span class="btn-edit-sm">Edit</span></div>
+    </div>`).join('') + '</div>';
+}
+
+function renderLibrary(container, filtered) {
+  if (libIndex >= filtered.length) libIndex = 0;
+  const b = filtered[libIndex];
+  container.innerHTML = `
+    <div class="library-wrap">
+      <div class="library-card-big">
+        <div class="lib-cover">${coverHTML(b,'lib')}</div>
+        <div class="lib-num">Book #${b.number} of ${books.length}</div>
+        <div class="lib-title">${b.title}</div>
+        <div class="lib-author">by ${b.author}</div>
+        ${b.rating ? '<div class="lib-rating">' + b.rating + '</div>' : ''}
+        ${b.notes ? '<div class="lib-notes">' + b.notes + '</div>' : ''}
+        ${b.genre ? '<div class="lib-genre">' + b.genre + '</div>' : ''}
+        ${b.recommend === 'Yes' ? '<div class="rec-badge" style="font-size:12px;padding:4px 12px">Recommended</div>' : ''}
+        <div class="lib-nav">
+          <button class="lib-nav-btn" onclick="libPrev()">←</button>
+          <span class="lib-progress">${libIndex + 1} / ${filtered.length}</span>
+          <button class="lib-nav-btn" onclick="libNext()">→</button>
+        </div>
+        <div style="margin-top:20px"><button class="btn-edit-sm" onclick="openModal(${b.id})">Edit this book</button></div>
+      </div>
+    </div>`;
+}
+
+function libNext() { const f = getFiltered(); libIndex = (libIndex + 1) % f.length; render(); }
+function libPrev() { const f = getFiltered(); libIndex = (libIndex - 1 + f.length) % f.length; render(); }
+
+function setView(v, btn) {
+  currentView = v; libIndex = 0;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function toggleModalRec() {
+  document.getElementById('modalRecTrack').classList.toggle('on');
+}
+
+function toggleRecFilter() {
+  showRecOnly = !showRecOnly;
+  document.getElementById('recTrack').classList.toggle('on', showRecOnly);
+  render();
+}
+
+// --- Modal ---
+function openModal(id) {
+  editingId = id || null;
+  const m = document.getElementById('modalOverlay');
+  const del = document.getElementById('deleteBtn');
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('searchingMsg').style.display = 'none';
+  document.getElementById('pasteURLWrap').style.display = 'none';
+  const manualPreview = document.getElementById('manualCoverPreview');
+  if (manualPreview) manualPreview.remove();
+  const coverUrlInput = document.getElementById('f-cover-url');
+  if (coverUrlInput) coverUrlInput.value = '';
+
+  if (id) {
+    const b = books.find(x => x.id === id);
+    document.getElementById('f-title').value = b.title;
+    document.getElementById('f-author').value = b.author;
+    document.getElementById('f-cover').value = b.cover || '';
+    document.getElementById('f-rating').value = b.rating || '';
+    document.getElementById('f-genre').value = b.genre || '';
+    document.getElementById('f-notes').value = b.notes || '';
+    document.getElementById('modalRecTrack').classList.toggle('on', (b.recommend || 'No') === 'Yes');
+    if (b.cover) {
+      document.getElementById('searchResults').innerHTML = '<div class="cover-option selected"><img src="' + b.cover + '"></div>';
+    }
+    del.style.display = 'block';
+  } else {
+    document.getElementById('f-title').value = '';
+    document.getElementById('f-author').value = '';
+    document.getElementById('f-cover').value = '';
+    document.getElementById('f-rating').value = '';
+    document.getElementById('f-genre').value = '';
+    document.getElementById('f-notes').value = '';
+    document.getElementById('modalRecTrack').classList.remove('on');
+    del.style.display = 'none';
+  }
+  m.classList.add('active');
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); editingId = null; }
+
+async function saveBook() {
+  const title = toTitleCase(document.getElementById('f-title').value.trim());
+  const author = document.getElementById('f-author').value.trim().replace(/[.]+$/, '');
+  if (!title || !author) { toast('Title and author are required'); return; }
+
+  if (editingId) {
+    const b = books.find(x => x.id === editingId);
+    b.title = title; b.author = author;
+    b.cover = document.getElementById('f-cover').value;
+    b.rating = document.getElementById('f-rating').value;
+    b.genre = document.getElementById('f-genre').value;
+    b.notes = document.getElementById('f-notes').value;
+    b.recommend = document.getElementById('modalRecTrack').classList.contains('on') ? 'Yes' : 'No';
+  } else {
+    books.push({
+      id: Date.now(),
+      number: books.length + 1,
+      title, author,
+      cover: document.getElementById('f-cover').value,
+      rating: document.getElementById('f-rating').value,
+      genre: document.getElementById('f-genre').value,
+      notes: document.getElementById('f-notes').value,
+      recommend: document.getElementById('modalRecTrack').classList.contains('on') ? 'Yes' : 'No',
+      addedAt: Date.now()
+    });
+  }
+  save();
+  render();
+  closeModal();
+  toast(editingId ? 'Book updated' : '"' + title + '" added');
+}
+
+async function deleteBook() {
+  if (!confirm('Delete this book?')) return;
+  books = books.filter(b => b.id !== editingId);
+  books.forEach((b, i) => b.number = i + 1);
+  save();
+  render();
+  closeModal();
+  toast('Book deleted');
+}
+
+// --- Cover search ---
+function debounceSearch() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(searchCovers, 700);
+}
+
+async function searchCovers() {
+  const title = document.getElementById('f-title').value.trim();
+  const author = document.getElementById('f-author').value.trim();
+  if (title.length < 3) return;
+
+  document.getElementById('searchingMsg').style.display = 'block';
+  document.getElementById('searchResults').innerHTML = '';
+
+  const covers = [];
+
+  try {
+    const q = encodeURIComponent(title + (author ? ' ' + author : ''));
+    const res = await fetch('https://openlibrary.org/search.json?q=' + q + '&fields=key,title,author_name,cover_i,cover_edition_key&limit=8');
+    const data = await res.json();
+    if (data.docs) {
+      data.docs.forEach(doc => {
+        if (doc.cover_i) covers.push('https://covers.openlibrary.org/b/id/' + doc.cover_i + '-M.jpg');
+        else if (doc.cover_edition_key) covers.push('https://covers.openlibrary.org/b/olid/' + doc.cover_edition_key + '-M.jpg');
+      });
+    }
+  } catch(e) {}
+
+  try {
+    const q2 = encodeURIComponent(title + (author ? '+inauthor:' + author : ''));
+    const res2 = await fetch('https://www.googleapis.com/books/v1/volumes?q=' + q2 + '&maxResults=8&printType=books');
+    const data2 = await res2.json();
+    if (data2.items) {
+      data2.items.forEach(item => {
+        const img = item.volumeInfo?.imageLinks?.thumbnail;
+        if (img) covers.push(img.replace('http://', 'https://').replace('zoom=1','zoom=2').replace('&edge=curl',''));
+      });
+    }
+  } catch(e) {}
+
+  document.getElementById('searchingMsg').style.display = 'none';
+  const unique = [...new Set(covers)].slice(0,6);
+
+  if (unique.length === 0) { document.getElementById('searchResults').innerHTML = '<span style="font-size:12px;color:var(--text-tertiary)">No covers found – you can paste a URL below</span>'; return; }
+
+  const container = document.getElementById('searchResults');
+  container.innerHTML = '';
+  unique.forEach((url, i) => {
+    const div = document.createElement('div');
+    div.className = 'cover-option' + (i === 0 ? ' selected' : '');
+    div.innerHTML = '<img src="' + url + '" onerror="this.parentNode.remove()">';
+    div.onclick = () => {
+      document.querySelectorAll('.cover-option').forEach(el => el.classList.remove('selected'));
+      div.classList.add('selected');
+      document.getElementById('f-cover').value = url;
+    };
+    container.appendChild(div);
+    if (i === 0) document.getElementById('f-cover').value = url;
+  });
+}
+
+// --- Quick entry ---
+function handleQuickEntry(e) {
+  if (e.key === 'Enter') handleQuickEntryClick();
+}
+
+function handleQuickEntryClick() {
+  const text = document.getElementById('quickInput').value.trim();
+  if (!text) return;
+  const byMatch = text.match(/^(.+?)\s+by\s+(.+)$/i);
+  let title = text, author = '';
+  if (byMatch) { title = byMatch[1].trim(); author = byMatch[2].trim().replace(/[.]+$/, ''); }
+  title = toTitleCase(title);
+  books.push({
+    id: Date.now(),
+    number: books.length + 1,
+    title,
+    author,
+    cover: '',
+    rating: '',
+    genre: '',
+    notes: '',
+    recommend: 'No',
+    addedAt: Date.now()
+  });
+  save();
+  render();
+  document.getElementById('quickInput').value = '';
+  toast('"' + title + '" added');
+}
+
+function togglePasteURL() {
+  const wrap = document.getElementById('pasteURLWrap');
+  wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+}
+
+function applyManualCover(url) {
+  if (!url) return;
+  document.getElementById('f-cover').value = url;
+  document.querySelectorAll('.cover-option').forEach(el => el.classList.remove('selected'));
+  const existing = document.getElementById('manualCoverPreview');
+  if (existing) existing.remove();
+  const preview = document.createElement('div');
+  preview.id = 'manualCoverPreview';
+  preview.className = 'cover-option selected';
+  preview.style.marginTop = '6px';
+  preview.innerHTML = `<img src="${url}" onerror="this.parentNode.style.display='none'">`;
+  document.getElementById('pasteURLWrap').appendChild(preview);
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); }
+  if (e.ctrlKey && e.shiftKey && e.key === 'A') { e.preventDefault(); openModal(); }
+});
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
